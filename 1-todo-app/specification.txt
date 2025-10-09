@@ -1,0 +1,160 @@
+Mini Todo API — Specification
+
+Base URL: http://localhost:3000/api
+
+Response format:
+{
+  "success": true | false,
+  "data": ...,
+  "error": { "code": string, "message": string } // if error occurs
+}
+
+--------------------------------------------------
+1. GET /todos
+Purpose: Retrieve all todos.
+
+Request:
+GET /api/todos
+
+Response 200 OK:
+{
+  "success": true,
+  "data": [
+    { "id": 1, "title": "Learn Express", "completed": false },
+    { "id": 2, "title": "Write first test", "completed": true }
+  ]
+}
+
+--------------------------------------------------
+2. POST /todos
+Purpose: Create a new todo.
+
+Request:
+POST /api/todos
+Content-Type: application/json
+
+Body:
+{
+  "title": "Write integration test"
+}
+
+Response 201 Created:
+{
+  "success": true,
+  "data": {
+    "id": 3,
+    "title": "Write integration test",
+    "completed": false
+  }
+}
+
+Response 400 Bad Request (missing title):
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Title is required"
+  }
+}
+
+--------------------------------------------------
+3. GET /todos/:id
+Purpose: Retrieve a specific todo by ID.
+
+Request:
+GET /api/todos/1
+
+Response 200 OK:
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Learn Express",
+    "completed": false
+  }
+}
+
+Response 404 Not Found:
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Todo not found"
+  }
+}
+
+--------------------------------------------------
+4. PUT /todos/:id
+Purpose: Update a specific todo.
+
+Request:
+PUT /api/todos/1
+Content-Type: application/json
+
+Body:
+{
+  "title": "Learn Express.js deeply",
+  "completed": true
+}
+
+Response 200 OK:
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Learn Express.js deeply",
+    "completed": true
+  }
+}
+
+Response 400 Bad Request (invalid body):
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request body"
+  }
+}
+
+Response 404 Not Found:
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Todo not found"
+  }
+}
+
+--------------------------------------------------
+5. DELETE /todos/:id
+Purpose: Delete a specific todo.
+
+Request:
+DELETE /api/todos/2
+
+Response 200 OK:
+{
+  "success": true,
+  "data": {
+    "id": 2,
+    "title": "Write first test",
+    "completed": true
+  }
+}
+
+Response 404 Not Found:
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Todo not found"
+  }
+}
+
+--------------------------------------------------
+HTTP Status Code Rules:
+- 200 OK: Success (GET/PUT/DELETE)
+- 201 Created: Resource created successfully (POST)
+- 400 Bad Request: Invalid or missing data
+- 404 Not Found: Resource not found
+- 500 Internal Server Error: Unexpected server error
