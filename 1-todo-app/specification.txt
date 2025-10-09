@@ -1,5 +1,5 @@
 Mini Todo API — Specification
-
+Description: A simple RESTful API for managing a todo list. Supports creating, retrieving, and updating todo items.
 Base URL: http://localhost:3000/api
 
 Response format:
