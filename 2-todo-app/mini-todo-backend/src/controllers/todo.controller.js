@@ -20,6 +20,9 @@ exports.createTodo = (req, res, next) => {
     return next(error);
   }
 
+  /** Phong comment:
+  Có thể chuẩn hoá input (trim, giới hạn độ dài) và tạo id bằng thư viện sinh id an toàn (uuid) để tránh trùng lặp khi gặp concurrency request
+  */
   const newTodo = {
     id: ++currentId,
     title: title,
