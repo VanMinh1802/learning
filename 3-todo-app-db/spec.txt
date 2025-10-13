@@ -1,0 +1,160 @@
+Mini Todo Backend — Assignment 3 Specification (Service + Repository + Supabase)
+
+==================================================
+1. Extended Project Structure
+==================================================
+
+mini-todo-backend/
+│
+├── src/
+│   ├── app.js
+│   ├── server.js
+│   │
+│   ├── core/
+│   │   ├── config.js           # Load env + Supabase setup
+│   │
+│   ├── middlewares/
+│   │   ├── errorHandler.js
+│   │   ├── loggerHandler.js
+│   │   └── notFoundHandler.js
+│   │
+│   ├── routes/
+│   │   └── todos.routes.js
+│   │
+│   ├── controllers/
+│   │   └── todo.controller.js
+│   │
+│   ├── services/               # Application logic layer
+│   │   └── todo.service.js
+│   │
+│   ├── repositories/           # Data access layer (Supabase)
+│   │   └── todo.repository.js
+│   │
+│
+├── .env.example
+├── package.json
+└── README.md
+
+--------------------------------------------------
+Purpose by layer:
+
+core/         -> Environment setup, Supabase client, helper utils.
+middlewares/  -> Error and 404 handlers.
+routes/       -> API endpoints definitions.
+controllers/  -> Handle requests and responses (no DB logic).
+services/     -> Business logic layer, call repository.
+repositories/ -> Direct interaction with Supabase tables.
+
+==================================================
+2. Request Flow
+==================================================
+
+Client
+   ↓
+Route (todos.routes.js)
+   ↓
+Controller (todo.controller.js)
+   ↓
+Service (todo.service.js)
+   ↓
+Repository (todo.repository.js)
+   ↓
+Supabase (PostgreSQL)
+
+==================================================
+3. Supabase Configuration Guide
+==================================================
+
+1. Create a project:
+   - Go to https://supabase.com
+   - Create a new project (free tier)
+   - Note down your:
+       - Project URL
+       - Anon Key
+       - Service Role Key (backend use only)
+
+2. Create the "todos" table in SQL Editor:
+   create table todos (
+     id uuid primary key default gen_random_uuid(),
+     title text not null,
+     completed boolean default false,
+     inserted_at timestamp with time zone default now()
+   );
+
+3. Add environment variables (.env):
+   PORT=3000
+   SUPABASE_URL=https://your-project-id.supabase.co
+   SUPABASE_SERVICE_ROLE_KEY=your-service-role-key
+
+4. Configure Supabase client (src/core/config.js):
+   import { createClient } from "@supabase/supabase-js";
+   import dotenv from "dotenv";
+   dotenv.config();
+
+   export const supabase = createClient(
+     process.env.SUPABASE_URL,
+     process.env.SUPABASE_SERVICE_ROLE_KEY
+   );
+
+==================================================
+4. Repository & Service Responsibilities
+==================================================
+
+Repository (todo.repository.js):
+- Use Supabase SDK for all database interactions.
+- Functions:
+  - getAll()
+  - getById(id)
+  - create(data)
+  - update(id, data)
+  - remove(id)
+
+Service (todo.service.js):
+- Call repository functions.
+- Add logic like validation, transformation, or existence checks.
+- Throw descriptive errors when needed.
+
+==================================================
+5. API Specification (CRUD Todo with Supabase)
+==================================================
+
+Base URL: http://localhost:3000/api/todos
+
+| Method | Endpoint | Description | Status Codes |
+|---------|-----------|--------------|---------------|
+| GET | / | Retrieve all todos | 200 |
+| POST | / | Create a new todo | 201 / 400 |
+| GET | /:id | Retrieve todo by ID | 200 / 404 |
+| PUT | /:id | Update todo | 200 / 400 / 404 |
+| DELETE | /:id | Delete todo | 200 / 404 |
+
+Response format:
+{
+  "success": true,
+  "data": {...}
+}
+
+Error format:
+{
+  "success": false,
+  "error": { "code": "NOT_FOUND", "message": "Todo not found" }
+}
+
+==================================================
+6. Status Code Rules
+==================================================
+- 200 OK: Success (GET/PUT/DELETE)
+- 201 Created: Resource created successfully (POST)
+- 400 Bad Request: Invalid or missing data
+- 404 Not Found: Resource not found
+- 500 Internal Server Error: Unexpected server error
+
+7. Guide
+- Ưu tiên dùng DB (Supabase/PostgreSQL), không giữ dữ liệu trong mảng bộ nhớ.
+- Dùng UUID cho id, không tự tăng biến đếm; kiểm tra UUID hợp lệ ở service layer
+- Phân lớp: controller , logic ở service, truy cập DB ở repository.
+- Cấu hình qua .env (PORT, SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY); tuyệt đối không hard-code xem .env.example.
+- Chuẩn hoá đầu vào: title là string, non-empty; completed là boolean; từ chối request sai sớm với mã lỗi rõ ràng.
+- Thống nhất format phản hồi: success trả data, lỗi trả error { code, message }.
+- Error code nhất quán, mapping phù hợp: VALIDATION_ERROR → 400, NOT_FOUND → 404, còn lại → 500.
+- Tránh mount router trùng lặp; chỉ mount /api/todos một lần, định nghĩa /:id trong router của todo.
