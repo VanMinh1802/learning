@@ -1,0 +1,222 @@
+Mini Todo Backend — Project Specification (Assignment 2)
+
+==================================================
+1. Project Structure (Minimal)
+==================================================
+
+Folder layout:
+mini-todo-backend/
+│
+├── src/
+│   ├── app.js
+│   ├── server.js
+│   │
+│   ├── middlewares/
+│   │   ├── errorHandler.js
+│   │   └── notFoundHandler.js
+│   │
+│   ├── routes/
+│   │   └── todos.routes.js
+│   │
+│   └── controllers/
+│       └── todo.controller.js
+│
+├── package.json
+└── README.md
+
+--------------------------------------------------
+Purpose of each file/folder:
+
+src/app.js
+- Initializes the Express app
+- Loads JSON parser middleware
+- Registers routes from routes/todos.routes.js
+- Attaches notFoundHandler and errorHandler
+
+src/server.js
+- Starts the app on a port (default 3000)
+- Reads environment variables if available
+
+src/middlewares/errorHandler.js
+- Centralized error handler
+- Sends standardized JSON response: { success: false, error: { message } }
+- Default status code: 500
+
+src/middlewares/notFoundHandler.js
+- Returns 404 if no route matches
+- Responds with: { success: false, error: { message: "Not Found" } }
+
+src/routes/todos.routes.js
+- Defines RESTful routes for CRUD operations
+- Uses controller functions for logic
+
+src/controllers/todo.controller.js
+- Implements in-memory CRUD logic for todos
+- Throws errors for missing/invalid data (handled by errorHandler)
+
+==================================================
+2. Mini Todo API — Specification
+==================================================
+
+Base URL: http://localhost:3000/api
+
+Response format:
+{
+  "success": true | false,
+  "data": ...,
+  "error": { "code": string, "message": string } // if error occurs
+}
+
+--------------------------------------------------
+1. GET /todos
+Purpose: Retrieve all todos.
+
+Response 200 OK:
+{
+  "success": true,
+  "data": [
+    { "id": 1, "title": "Learn Express", "completed": false },
+    { "id": 2, "title": "Write first test", "completed": true }
+  ]
+}
+
+--------------------------------------------------
+2. POST /todos
+Purpose: Create a new todo.
+
+Request:
+POST /api/todos
+Content-Type: application/json
+
+Body:
+{
+  "title": "Write integration test"
+}
+
+Response 201 Created:
+{
+  "success": true,
+  "data": {
+    "id": 3,
+    "title": "Write integration test",
+    "completed": false
+  }
+}
+
+Response 400 Bad Request (missing title):
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Title is required"
+  }
+}
+
+--------------------------------------------------
+3. GET /todos/:id
+Purpose: Retrieve a specific todo by ID.
+
+Response 200 OK:
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Learn Express",
+    "completed": false
+  }
+}
+
+Response 404 Not Found:
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Todo not found"
+  }
+}
+
+--------------------------------------------------
+4. PUT /todos/:id
+Purpose: Update a specific todo.
+
+Body:
+{
+  "title": "Learn Express.js deeply",
+  "completed": true
+}
+
+Response 200 OK:
+{
+  "success": true,
+  "data": {
+    "id": 1,
+    "title": "Learn Express.js deeply",
+    "completed": true
+  }
+}
+
+Response 400 Bad Request:
+{
+  "success": false,
+  "error": {
+    "code": "VALIDATION_ERROR",
+    "message": "Invalid request body"
+  }
+}
+
+Response 404 Not Found:
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Todo not found"
+  }
+}
+
+--------------------------------------------------
+5. DELETE /todos/:id
+Purpose: Delete a specific todo.
+
+Response 200 OK:
+{
+  "success": true,
+  "data": {
+    "id": 2,
+    "title": "Write first test",
+    "completed": true
+  }
+}
+
+Response 404 Not Found:
+{
+  "success": false,
+  "error": {
+    "code": "NOT_FOUND",
+    "message": "Todo not found"
+  }
+}
+
+==================================================
+3. Status Code Rules
+==================================================
+- 200 OK: Success (GET/PUT/DELETE)
+- 201 Created: Resource created successfully (POST)
+- 400 Bad Request: Invalid or missing data
+- 404 Not Found: Resource not found
+- 500 Internal Server Error: Unexpected server error
+
+==================================================
+4. Suggested Test Cases
+==================================================
+GET /todos: initial empty list -> 200 []
+POST /todos: valid input -> 201
+POST /todos: missing title -> 400
+GET /todos/:id: existing id -> 200
+GET /todos/:id: non-existing id -> 404
+PUT /todos/:id: valid update -> 200
+PUT /todos/:id: invalid body -> 400
+DELETE /todos/:id: existing id -> 200
+DELETE /todos/:id: non-existing id -> 404
+
+==================================================
+End of Specification
