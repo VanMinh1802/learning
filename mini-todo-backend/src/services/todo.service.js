@@ -32,23 +32,23 @@ class TodoService {
   }
 
   async updateTodo(id, updateData) {
-    const existingTodo = await todoRepository.getById(id);
-    if (!existingTodo) {
-      const error = new Error("Todo not found");
-      error.status = 404;
-      error.code = "NOT_FOUND";
-      throw error;
-    }
-
     const { title, completed } = updateData;
     if (
       typeof title !== "string" ||
       typeof completed !== "boolean" ||
       title.trim() === ""
     ) {
-      const error = new Error("Invalid request body");
+      const error = new Error("invalid request body");
       error.status = 400;
       error.code = "VALIDATION_ERROR";
+      throw error;
+    }
+
+    const existingTodo = await todoRepository.getById(id);
+    if (!existingTodo) {
+      const error = new Error("Todo not found");
+      error.status = 404;
+      error.code = "NOT_FOUND";
       throw error;
     }
 
