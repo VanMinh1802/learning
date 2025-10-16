@@ -30,7 +30,7 @@ class TodoRepository {
       .from("todos")
       .select("*")
       .eq("id", id)
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw error;
@@ -44,7 +44,7 @@ class TodoRepository {
       .update(todoData)
       .eq("id", id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw error;
@@ -59,7 +59,7 @@ class TodoRepository {
       .delete()
       .eq("id", id)
       .select()
-      .single();
+      .maybeSingle();
 
     if (error) {
       throw error;
